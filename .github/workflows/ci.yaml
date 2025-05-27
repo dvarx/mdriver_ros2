@@ -41,9 +41,7 @@ jobs:
       - name: Build the workspace
         run: |
           cd ~/ros2_ws
-          ls /opt/ros
-          ls /opt/ros/jazzy
-          source /opt/ros/jazzy/setup.bash
+#         note: ROS2 setup file is already sourced due to the ros-tooling action
           colcon build --event-handlers console_direct+
 
 #      - name: Run tests
