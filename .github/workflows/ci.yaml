@@ -41,7 +41,7 @@ jobs:
       - name: Build the workspace
         run: |
           cd ~/ros2_ws
-          source /opt/ros/humble/setup.bash
+          source /opt/ros/jazzy/setup.bash
           colcon build --event-handlers console_direct+
 
 #      - name: Run tests
