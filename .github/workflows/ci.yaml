@@ -23,9 +23,9 @@ jobs:
         run: |
           echo $GITHUB_WORKSPACE
           whoami
-          mkdir -p ~/ros2_ws/src
-          mv * ~/ros2_ws/src/
-          mv .github ~/ros2_ws/src/
+          mkdir -p ~/ros2_ws/src/mdriver
+          mv * ~/ros2_ws/src/mdriver
+          mv .github ~/ros2_ws/src/mdriver
           cd ~/ros2_ws
           ls -la src
           echo $PWD
