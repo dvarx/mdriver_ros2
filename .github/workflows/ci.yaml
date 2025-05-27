@@ -33,12 +33,14 @@ jobs:
       - name: Install dependencies
         run: |
           echo $PWD
+          cd ~/ros2_ws
           sudo apt update
           rosdep update
           rosdep install --from-paths ./src --ignore-src -r -y
 
       - name: Build the workspace
         run: |
+          cd ~/ros2_ws
           source /opt/ros/humble/setup.bash
           colcon build --event-handlers console_direct+
 
