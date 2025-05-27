@@ -12,6 +12,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        #stores github workspace in $GITHUB_WORKSPACE
 
       - name: Set up ROS 2
         uses: ros-tooling/setup-ros@v0.7
@@ -20,11 +21,12 @@ jobs:
 
       - name: Create workspace and move repo
         run: |
-          mkdir -p ros2_ws/src
-          mv * ros2_ws/src/
-          mv .github ros2_ws/src/  # Move .github too so the workflow doesn't vanish
-          cd ros2_ws
+          mkdir -p ../ros2_ws/src
+          mv * ../ros2_ws/src/
+          mv .github ../ros2_ws/src/  # Move .github too so the workflow doesn't vanish
+          cd ../ros2_ws
           ls -la src
+          echo $PWD
 
       - name: Install dependencies
         run: |
