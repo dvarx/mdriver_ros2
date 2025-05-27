@@ -1,0 +1,47 @@
+name: ROS 2 CI
+
+on:
+  push:
+    branches: [feature/cicd]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up ROS 2
+        uses: ros-tooling/setup-ros@v0.7
+        with:
+          distribution: jazzy  # or foxy, iron, etc.
+
+      - name: Create workspace and move repo
+        run: |
+          mkdir -p ros2_ws/src
+          mv * ros2_ws/src/
+          mv .github ros2_ws/src/  # Move .github too so the workflow doesn't vanish
+          cd ros2_ws
+          ls -la src
+
+      - name: Install dependencies
+        run: |
+          cd ros2_ws
+          sudo apt update
+          rosdep update
+          rosdep install --from-paths src --ignore-src -r -y
+
+      - name: Build the workspace
+        run: |
+          cd ros2_ws
+          source /opt/ros/humble/setup.bash
+          colcon build --event-handlers console_direct+
+
+#      - name: Run tests
+#        run: |
+#          cd ros2_ws
+#          source install/setup.bash
+#          colcon test
+#          colcon test-result --verbose
