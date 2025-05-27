@@ -41,7 +41,6 @@ jobs:
       - name: Build the workspace
         run: |
           cd ~/ros2_ws
-#         note: ROS2 setup file is already sourced due to the ros-tooling action
           colcon build --event-handlers console_direct+
 
 #      - name: Run tests
