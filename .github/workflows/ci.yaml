@@ -17,7 +17,7 @@ jobs:
       - name: Set up ROS 2
         uses: ros-tooling/setup-ros@v0.7
         with:
-          distribution: jazzy  # or foxy, iron, etc.
+          required-ros-distributions: jazzy
 
       - name: Create workspace and move repo
         run: |
