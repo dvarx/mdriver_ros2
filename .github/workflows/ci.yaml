@@ -22,10 +22,11 @@ jobs:
       - name: Create workspace and move repo
         run: |
           echo $GITHUB_WORKSPACE
-          mkdir -p ../ros2_ws/src
-          mv * ../ros2_ws/src/
-          mv .github ../ros2_ws/src/  # Move .github too so the workflow doesn't vanish
-          cd ../ros2_ws
+          whoami
+          mkdir -p ~/ros2_ws/src
+          mv * ~/ros2_ws/src/
+          mv .github ~/ros2_ws/src/
+          cd ~/ros2_ws
           ls -la src
           echo $PWD
 
@@ -33,7 +34,7 @@ jobs:
         run: |
           sudo apt update
           rosdep update
-          rosdep install --from-paths src --ignore-src -r -y
+          rosdep install --from-paths ./src --ignore-src -r -y
 
       - name: Build the workspace
         run: |
