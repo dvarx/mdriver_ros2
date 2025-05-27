@@ -41,8 +41,9 @@ jobs:
       - name: Build the workspace
         run: |
           cd ~/ros2_ws
-          echo "/opt/ros/$ROS_DSITRO/setup.bash"
-          source /opt/ros/$ROS_DSITRO/setup.bash
+          ls /opt/ros
+          ls /opt/ros/jazzy
+          source /opt/ros/jazzy/setup.bash
           colcon build --event-handlers console_direct+
 
 #      - name: Run tests
