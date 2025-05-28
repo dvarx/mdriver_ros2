@@ -13,7 +13,6 @@
   <buildtool_depend condition="$ROS_PYTHON_VERSION == 3">python3-setuptools</buildtool_depend>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
-  <buildtool_depend>ament_cmake_clang_format</buildtool_depend>
   <build_depend>rosidl_default_generators</build_depend>
 
   <member_of_group>rosidl_interface_packages</member_of_group>
