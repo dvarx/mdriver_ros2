@@ -6,7 +6,6 @@
 
 #include "mdriver/msg/status.hpp"
 #include "mdriver/srv/state_transition.hpp"
-#include "statemachine.h"
 
 // ethernet / ip related includes
 #include <arpa/inet.h>
@@ -26,7 +25,7 @@
 #define NO_CHANNELS 6
 #define DEFAULT_RES_FREQ_MILLIHZ 10000000
 // this defines the downsampling for the TNB_MNS_STATUS topics
-unsigned int status_msg_downsample=1;
+unsigned int status_msg_downsample = 1;
 
 rclcpp::Publisher<mdriver::msg::Status>::SharedPtr tnb_mns_state_publisher;
 bool hardware_connected = true;
@@ -58,9 +57,9 @@ struct sockaddr_in servaddr;  // address struct
 #define TNB_MNS_PORT 30
 #define BUFFER_SIZE 1024
 uint8_t send_buffer[1024];
-const float send_interval = 10e-3;    // defines the timerinterval of the send timer
-double pre_filter_tau = 500e-3;  // time constant of the prefilter to limit energy feedback
-bool use_prefilter=false;
+const float send_interval = 10e-3;  // defines the timerinterval of the send timer
+double pre_filter_tau = 500e-3;     // time constant of the prefilter to limit energy feedback
+bool use_prefilter = false;
 const unsigned int packets_per_second = (unsigned int)(1.0 / send_interval);
 rclcpp::Node::SharedPtr nh;
 
@@ -300,18 +299,16 @@ void msg_des_freqs_cb(std_msgs::msg::Float32MultiArray::UniquePtr msg) {
 unsigned int send_counter = 0;
 void mdriver_timer_cb() {
   RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Entering Timer Handler...");
-  pre_filter_tau=nh->get_parameter("prefilter_tau").as_double();
+  pre_filter_tau = nh->get_parameter("prefilter_tau").as_double();
   // apply the first order time constant [pre-filter]
-  if(nh->get_parameter("use_prefilter").as_bool()){
+  if (nh->get_parameter("use_prefilter").as_bool()) {
     for (int i = 0; i < NO_CHANNELS; i++) {
       m_des_currents_mA_filtered[i] =
           pre_filter_tau / (pre_filter_tau + send_interval) * m_des_currents_mA_prev[i] +
           send_interval / (pre_filter_tau + send_interval) * m_des_currents_mA[i];
     }
-  }
-  else{
-    for(int i=0; i<NO_CHANNELS; i++)
-      m_des_currents_mA_filtered[i]=m_des_currents_mA[i];
+  } else {
+    for (int i = 0; i < NO_CHANNELS; i++) m_des_currents_mA_filtered[i] = m_des_currents_mA[i];
   }
 
   // assemble the tnb_mns_message and send ethernet package
@@ -363,37 +360,36 @@ void mdriver_timer_cb() {
     }
   }
   // check if TCP packages have been received
-  RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"),"Reading RECV Buffer");
+  RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Reading RECV Buffer");
   uint8_t bytes_received[2048];
-  int bytes_read=recv(sock_cli,bytes_received,2048,0);
-  if(bytes_read>0){
-      //ROS_DEBUG("Received %d bytes...",bytes_read);
-      RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"),"Received %d bytes...",bytes_read);
-      if(bytes_read!=sizeof(tnb_mns_msg_sysstate)){
-          reset_currents();
-          RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"),"Received %d bytes : However, message size from UCU should be %d",
-          bytes_read,sizeof(tnb_mns_msg_sysstate));
+  int bytes_read = recv(sock_cli, bytes_received, 2048, 0);
+  if (bytes_read > 0) {
+    // ROS_DEBUG("Received %d bytes...",bytes_read);
+    RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Received %d bytes...", bytes_read);
+    if (bytes_read != sizeof(tnb_mns_msg_sysstate)) {
+      reset_currents();
+      RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"),
+                   "Received %d bytes : However, message size from UCU should be %d", bytes_read,
+                   sizeof(tnb_mns_msg_sysstate));
+    } else {
+      memcpy(&m_last_system_report, bytes_received, sizeof(tnb_mns_msg_sysstate));
+      RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Current 1 %d", m_last_system_report.currents[0]);
+      if (send_counter % status_msg_downsample == 0) {
+        auto tnbmns_status = mdriver::msg::Status();
+        for (int i = 0; i < NO_CHANNELS; i++) {
+          tnbmns_status.currents_reg[i] = m_last_system_report.currents[i] * 1e-3;
+          tnbmns_status.states[i] = m_last_system_report.states[i];
+          tnbmns_status.duties[i] = (double)(m_last_system_report.duties[i]) / ((double)(65535.0));
+          tnbmns_status.res_freqs[i] = m_last_system_report.freqs[i] * 1e-3;
+          tnbmns_status.dclink_voltages[i] = m_last_system_report.dclink_voltages[i] * 1e-3;
+        }
+        tnb_mns_state_publisher->publish(tnbmns_status);
       }
-      else{
-          memcpy(&m_last_system_report,bytes_received,sizeof(tnb_mns_msg_sysstate));
-          RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"),"Current 1 %d",m_last_system_report.currents[0]);
-          if(send_counter%status_msg_downsample==0){
-              auto tnbmns_status=mdriver::msg::Status();
-              for(int i=0; i<NO_CHANNELS; i++){
-                  tnbmns_status.currents_reg[i]=m_last_system_report.currents[i]*1e-3;
-                  tnbmns_status.states[i]=m_last_system_report.states[i];
-                  tnbmns_status.duties[i]=(double)(m_last_system_report.duties[i])/((double)(65535.0));
-                  tnbmns_status.res_freqs[i]=m_last_system_report.freqs[i]*1e-3;
-                  tnbmns_status.dclink_voltages[i]=m_last_system_report.dclink_voltages[i]*1e-3;
-              }
-              tnb_mns_state_publisher->publish(tnbmns_status);
-          }
-      }
+    }
   }
-  if(bytes_read==-1){
-      RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Error reading from socket:%s",
-      strerror(errno));
-      //ROS_ERROR("Error reading from socket: %s",strerror(errno));
+  if (bytes_read == -1) {
+    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Error reading from socket:%s", strerror(errno));
+    // ROS_ERROR("Error reading from socket: %s",strerror(errno));
   }
 
   // store the sent packet for later
@@ -416,12 +412,13 @@ int main(int argc, char **argv) {
 
   nh = std::make_shared<rclcpp::Node>("mdriver_node");
 
-  nh->declare_parameter("status_msg_downsample",1);
-  nh->declare_parameter("use_prefilter",true);
-  nh->declare_parameter("prefilter_tau",100e-3);
+  nh->declare_parameter("status_msg_downsample", 1);
+  nh->declare_parameter("use_prefilter", true);
+  nh->declare_parameter("prefilter_tau", 100e-3);
 
-  status_msg_downsample=nh->get_parameter("status_msg_downsample").as_int();
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "status messages will be downsamples by a factor of %d",status_msg_downsample);
+  status_msg_downsample = nh->get_parameter("status_msg_downsample").as_int();
+  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "status messages will be downsamples by a factor of %d",
+              status_msg_downsample);
 
   // init ttycomm
   if (hardware_connected) {
@@ -457,11 +454,12 @@ int main(int argc, char **argv) {
   // register services
   srv_enable_mdriver =
       nh->create_service<mdriver::srv::StateTransition>("/mdriver/enable", &srv_enable_mdriver_cb);
-  srv_stop_mdriver = nh->create_service<mdriver::srv::StateTransition>("/mdriver/stop", &srv_stop_mdriver_cb);
-  srv_run_regular =
-      nh->create_service<mdriver::srv::StateTransition>("/mdriver/run_regular", &srv_run_regular_cb);
-  srv_run_resonant =
-      nh->create_service<mdriver::srv::StateTransition>("/mdriver/run_resonant", &srv_run_resonant_cb);
+  srv_stop_mdriver =
+      nh->create_service<mdriver::srv::StateTransition>("/mdriver/stop", &srv_stop_mdriver_cb);
+  srv_run_regular = nh->create_service<mdriver::srv::StateTransition>("/mdriver/run_regular",
+                                                                      &srv_run_regular_cb);
+  srv_run_resonant = nh->create_service<mdriver::srv::StateTransition>("/mdriver/run_resonant",
+                                                                       &srv_run_resonant_cb);
 
   // //register subscribers
   des_currents_reg_subs = nh->create_subscription<std_msgs::msg::Float32MultiArray>(

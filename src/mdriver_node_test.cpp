@@ -1,3 +1,5 @@
+#include <signal.h>
+
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -5,13 +7,12 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float32_multi_array.hpp>
 #include <vector>
-#include <signal.h>
 
 #include "mdriver/srv/state_transition.hpp"
 
 using namespace std::chrono_literals;
 
-bool rectangular_current=true;
+bool rectangular_current = true;
 void sig_int_handler(int sig) {
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Shutdown using SIGINT");
 
@@ -32,10 +33,9 @@ class MDriverTestNode : public rclcpp::Node {
 
     msg_.data.resize(6);
 
-    this->declare_parameter("rectangular_current",false);
-    this->declare_parameter("amplitude",1.0);
-    this->declare_parameter("frequency",1.0);
-
+    this->declare_parameter("rectangular_current", false);
+    this->declare_parameter("amplitude", 1.0);
+    this->declare_parameter("frequency", 1.0);
 
     // put the driver into run_regular mode
 
@@ -118,17 +118,16 @@ class MDriverTestNode : public rclcpp::Node {
   void mdriver_timer_cb() {
     rclcpp::Time current_time = this->get_clock()->now();
     double current;
-    i_amp_=this->get_parameter("amplitude").as_double();
-    freq_=this->get_parameter("frequency").as_double();
-    if(rectangular_current){
-      double relt=current_time.seconds()-int(current_time.seconds());
-      if(relt>0.5)
-        current=i_amp_;
+    i_amp_ = this->get_parameter("amplitude").as_double();
+    freq_ = this->get_parameter("frequency").as_double();
+    if (rectangular_current) {
+      double relt = current_time.seconds() - int(current_time.seconds());
+      if (relt > 0.5)
+        current = i_amp_;
       else
-        current=-i_amp_;
-    }
-    else
-      current = i_amp_ * sin(2*M_PI*freq_ * current_time.seconds());
+        current = -i_amp_;
+    } else
+      current = i_amp_ * sin(2 * M_PI * freq_ * current_time.seconds());
 
     for (size_t i = 0; i < msg_.data.size(); ++i) {
       msg_.data[i] = 0.0f;
