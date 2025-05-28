@@ -462,11 +462,11 @@ int main(int argc, char **argv) {
                                                                        &srv_run_resonant_cb);
 
   // //register subscribers
-  des_currents_reg_subs = nh->create_subscription<std_msgs::msg::Float32MultiArray>(
+      des_currents_reg_subs = nh->create_subscription<std_msgs::msg::Float32MultiArray>(
       "/mdriver/des_currents_reg", 64, msg_des_currents_reg_cb);
   des_duties_subs = nh->create_subscription<std_msgs::msg::Float32MultiArray>(
       "/mdriver/des_duties", 64, msg_des_duties_reg_cb);
-  des_currents_res_subs = nh->create_subscription<std_msgs::msg::Float32MultiArray>(
+    des_currents_res_subs = nh->create_subscription<std_msgs::msg::Float32MultiArray>(
       "/mdriver/des_currents_res", 64, msg_des_currents_res_cb);
   des_freqs_res = nh->create_subscription<std_msgs::msg::Float32MultiArray>(
       "/mdriver/des_freqs_res", 64, msg_des_freqs_cb);
