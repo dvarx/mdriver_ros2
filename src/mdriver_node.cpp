@@ -57,7 +57,7 @@ struct sockaddr_in servaddr;  // address struct
 #define TNB_MNS_PORT 30
 #define BUFFER_SIZE 1024
 uint8_t send_buffer[1024];
-const float send_interval = 10e-3;  // defines the timerinterval of the send timer
+float send_interval = 10e-3;  // defines the timerinterval of the send timer
 double pre_filter_tau = 500e-3;     // time constant of the prefilter to limit energy feedback
 bool use_prefilter = false;
 const unsigned int packets_per_second = (unsigned int)(1.0 / send_interval);
