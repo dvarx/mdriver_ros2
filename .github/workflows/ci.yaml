@@ -15,5 +15,6 @@ jobs:
         #stores github workspace in $GITHUB_WORKSPACE
 
       - name: Run build test within docker container
-        run:  docker pull dvarx/mdriver_build_24_04
+        run:  |
+              docker pull dvarx/mdriver_build_24_04
               docker run dvarx/mdriver_build_24_04
