@@ -14,39 +14,6 @@ jobs:
         uses: actions/checkout@v3
         #stores github workspace in $GITHUB_WORKSPACE
 
-      - name: Set up ROS 2
-        uses: ros-tooling/setup-ros@v0.7
-        with:
-          required-ros-distributions: jazzy
-
-      - name: Create workspace and move repo
-        run: |
-          echo $GITHUB_WORKSPACE
-          whoami
-          mkdir -p ~/ros2_ws/src/mdriver
-          mv * ~/ros2_ws/src/mdriver
-          mv .github ~/ros2_ws/src/mdriver
-          cd ~/ros2_ws
-          ls -la src
-          echo $PWD
-
-      - name: Install dependencies
-        run: |
-          echo $PWD
-          cd ~/ros2_ws
-          sudo apt update
-          rosdep update
-          rosdep install --from-paths ./src --ignore-src -r -y
-
-      - name: Build the workspace
-        run: |
-          cd ~/ros2_ws
-          source /opt/ros/jazzy/setup.bash
-          colcon build --event-handlers console_direct+
-
-      - name: Run tests
-        run: |
-          cd ~/ros2_ws
-          source install/setup.bash
-          colcon test
-          colcon test-result --verbose
+      - name: Run build test within docker container
+        run:  docker pull docker pull dvarx/mdriver_build_24_04
+              docker run docker pull dvarx/mdriver_build_24_04
