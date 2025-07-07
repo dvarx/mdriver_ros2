@@ -65,7 +65,7 @@ class FieldForceGUI(QDialog):
         self.system=magnetic_system
 
         #register a ros publisher to publish desired currents
-        self.currents_pub=self.node.create_publisher(Float32MultiArray,"/tnb_mns_driver/des_currents_reg",10)
+        self.currents_pub=self.node.create_publisher(Float32MultiArray,"/mdriver/des_currents_reg",10)
         self.des_currents_msg=Float32MultiArray()
         self.des_currents_msg.data=[0,0,0,0,0,0]
 
