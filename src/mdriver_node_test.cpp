@@ -1,5 +1,4 @@
 #include <signal.h>
-
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -7,8 +6,9 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float32_multi_array.hpp>
 #include <vector>
-
 #include "mdriver/srv/state_transition.hpp"
+
+#define NO_CHANNELS 9
 
 using namespace std::chrono_literals;
 
@@ -25,11 +25,11 @@ class MDriverTestNode : public rclcpp::Node
 {
 public:
   MDriverTestNode()
-    : Node("mdriver_node_test"), delta_T_(10ms), i_amp_(1.0), freq_(1.0 * M_PI), currents_(6, 0.0), msg_()
+    : Node("mdriver_node_test"), delta_T_(10ms), i_amp_(1.0), freq_(1.0 * M_PI), currents_(NO_CHANNELS, 0.0), msg_()
   {
     RCLCPP_INFO(this->get_logger(), "Starting up mdriver test node");
 
-    msg_.data.resize(6);
+    msg_.data.resize(NO_CHANNELS);
 
     this->declare_parameter("rectangular_current", false);
     this->declare_parameter("amplitude", 1.0);
@@ -44,7 +44,9 @@ public:
     {
       RCLCPP_INFO(this->get_logger(), "Waiting for enable service...");
     }
-    std::array<bool, 6> enablearr = { true, true, true, true, true, true };
+    std::array<bool, NO_CHANNELS> enablearr;
+    for(int i=0; i<NO_CHANNELS; i++)
+      enablearr[i]=true;
     auto request = std::make_shared<mdriver::srv::StateTransition::Request>();
     request->enable = enablearr;
     // async_send_request is non-blocking
@@ -64,7 +66,9 @@ public:
     {
       RCLCPP_INFO(this->get_logger(), "Waiting for RUN_REGULAR service...");
     }
-    std::array<bool, 6> runregarray = { true, true, true, true, true, true };
+    std::array<bool, NO_CHANNELS> runregarray;
+    for(int i=0; i<NO_CHANNELS; i++)
+    runregarray[i]=true;
     auto runreg_request = std::make_shared<mdriver::srv::StateTransition::Request>();
     runreg_request->enable = runregarray;
     auto runreg_result = client_runregular->async_send_request(runreg_request);
@@ -94,7 +98,9 @@ public:
   {
     // call the stop node before terminating
     auto req = std::make_shared<mdriver::srv::StateTransition::Request>();
-    std::array<bool, 6> stoparr = { true, true, true, true, true, true };
+    std::array<bool, NO_CHANNELS> stoparr;
+    for(int i=0; i<NO_CHANNELS; i++)
+      stoparr[i]=true;
     req->enable = stoparr;
     auto res = client_stop->async_send_request(req);
     if (!(rclcpp::spin_until_future_complete(this->get_node_base_interface(), res) ==

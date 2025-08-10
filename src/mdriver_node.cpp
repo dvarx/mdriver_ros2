@@ -22,7 +22,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define NO_CHANNELS 6
+#define NO_CHANNELS 9
 #define DEFAULT_RES_FREQ_MILLIHZ 10000000
 // this defines the downsampling for the TNB_MNS_STATUS topics
 unsigned int status_msg_downsample = 1;
